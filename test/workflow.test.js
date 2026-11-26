@@ -1,0 +1,11 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {validateProject,review,demoScript,generate} from '../lib/workflow.js';
+const p={product:'กาแฟ',facts:'คั่วกลาง',duration:30,platform:'TikTok'};
+test('validates project',()=>assert.deepEqual(validateProject(p),p));
+test('rejects missing facts and invalid duration/platform',()=>{for(const patch of [{facts:''},{duration:10},{platform:'bad'},{product:'x'.repeat(201)}])assert.throws(()=>validateProject({...p,...patch}));});
+test('flags risky claims and always requires approval',()=>{assert.equal(review('หายขาด').issues.length,1);assert.equal(review('กาแฟ').needsHumanApproval,true);});
+test('demo clearly labelled',()=>assert.match(demoScript(p),/ไม่ได้เรียก AI/));
+test('live fails closed without config',async()=>assert.rejects(()=>generate(p,{}),/ยังไม่ได้ตั้งค่า/));
+test('adapter sends model and parses result',async()=>{const old=global.fetch;global.fetch=async(url,opts)=>{assert.equal(url,'https://example.com/v1/chat/completions');assert.equal(JSON.parse(opts.body).model,'test');assert.equal(opts.redirect,'error');return {ok:true,json:async()=>({choices:[{message:{content:'บท'}}]})};};try{assert.equal(await generate(p,{AI_BASE_URL:'https://example.com/v1',AI_MODEL:'test'}),'บท');}finally{global.fetch=old;}});
+test('adapter surfaces quota failure',async()=>{const old=global.fetch;global.fetch=async()=>({ok:false,status:429});try{await assert.rejects(()=>generate(p,{AI_BASE_URL:'https://example.com/v1',AI_MODEL:'test'}),/429/);}finally{global.fetch=old;}});
