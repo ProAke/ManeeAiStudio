@@ -1,0 +1,74 @@
+{
+  "name": "maneeflow",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env web.js",
+    "test": "node --test",
+    "desktop": "electron .",
+    "build:mac": "electron-builder --mac",
+    "build:win": "electron-builder --win",
+    "pack": "electron-builder --dir"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "description": "Provider-independent creative workflow for desktop",
+  "author": "ManeeFlow contributors",
+  "main": "desktop/main.cjs",
+  "build": {
+    "appId": "studio.maneeflow.desktop",
+    "productName": "ManeeFlow",
+    "asar": true,
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "desktop/**",
+      "public/**",
+      "lib/**",
+      "server.js",
+      "package.json"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ]
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false
+    },
+    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}"
+  },
+  "devDependencies": {
+    "electron": "^45.5.0",
+    "electron-builder": "^26.18.0"
+  }
+}
